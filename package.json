@@ -1,0 +1,16 @@
+{
+  "name": "agent-crew",
+  "version": "0.1.0",
+  "description": "Pluggable tmux-based multi-agent crew for Claude Code — drop into any repo.",
+  "type": "module",
+  "bin": { "agent-crew": "bin/cli.mjs" },
+  "engines": { "node": ">=20" },
+  "files": ["bin", "src", "templates"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "yaml": "^2.5.0"
+  },
+  "license": "MIT"
+}
