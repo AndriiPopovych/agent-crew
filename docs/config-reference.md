@@ -2,7 +2,7 @@
 
 This document covers every key produced by `buildConfig()` in `src/config.mjs`. Do not add keys that are not listed here — unknown keys are ignored by the engine.
 
-Edit `team.config.yaml`, then run `agent-crew sync` to regenerate `_shared/project.md` and `_bin/*.sh`.
+Edit `team.config.yaml`, then run `agentcrew sync` to regenerate `_shared/project.md` and `_bin/*.sh`.
 
 ---
 
@@ -319,7 +319,7 @@ gotchas:
   - "Port 5432 must be free — stop local Postgres if running"
 ```
 
-When the list is empty, `project.md` shows a placeholder prompting you to add entries. After editing, run `agent-crew sync`.
+When the list is empty, `project.md` shows a placeholder prompting you to add entries. After editing, run `agentcrew sync`.
 
 ---
 
@@ -327,7 +327,7 @@ When the list is empty, `project.md` shows a placeholder prompting you to add en
 
 ```yaml
 # agent-crew project config — single source of truth.
-# Edit then run `agent-crew sync` to regenerate generated files.
+# Edit then run `agentcrew sync` to regenerate generated files.
 
 project:
   name: myapp

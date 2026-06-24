@@ -1,5 +1,5 @@
 # Illustrative example — the real project that agent-crew was extracted from.
-# Do NOT copy this file. Run `agent-crew init` in YOUR repo — it autodetects your stack.
+# Do NOT copy this file. Run `agentcrew init` in YOUR repo — it autodetects your stack.
 
 project:
   name: sync-matrix

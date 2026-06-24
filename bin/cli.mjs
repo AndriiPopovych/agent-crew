@@ -15,7 +15,7 @@ const cwd = process.cwd();
 function loadCfgOrExit(root) {
   const p = join(root, ".agent-crew/team.config.yaml");
   if (!existsSync(p)) {
-    console.error("Не знайдено .agent-crew/team.config.yaml — спершу `agent-crew init`.");
+    console.error("Не знайдено .agent-crew/team.config.yaml — спершу `agentcrew init`.");
     process.exit(1);
   }
   return readConfig(p);
@@ -25,7 +25,7 @@ async function doInit() {
   const detected = detectProject(cwd);
   const root = detected.project.root;
   if (existsSync(join(root, ".agent-crew"))) {
-    console.error(".agent-crew/ вже існує. Видали її або відредагуй team.config.yaml + `agent-crew sync`.");
+    console.error(".agent-crew/ вже існує. Видали її або відредагуй team.config.yaml + `agentcrew sync`.");
     process.exit(1);
   }
   const answers = await runInitPrompts(detected);
@@ -42,7 +42,7 @@ async function doInit() {
   }
   scaffold(cfg, { targetRoot: root });
   console.log(`\n✓ .agent-crew/ створено в ${root}`);
-  console.log("Наступний крок:  agent-crew launch");
+  console.log("Наступний крок:  agentcrew launch");
 }
 
 async function main() {
@@ -71,9 +71,9 @@ async function main() {
     case undefined:
     case "--help":
     case "-h":
-      console.log(`agent-crew — pluggable multi-agent crew
+      console.log(`agentcrew — pluggable multi-agent crew
 
-Usage: agent-crew <command>
+Usage: agentcrew <command>
   init      Scan repo, scaffold .agent-crew/ into the current project
   launch    Start the teamlead tmux session (self-onboards on first run)
   onboard   Run/refresh the deep project onboarding
@@ -81,7 +81,7 @@ Usage: agent-crew <command>
   doctor    Check preconditions (tmux, package manager, port, env)`);
       break;
     default:
-      console.error(`Unknown command: ${cmd}\nRun 'agent-crew --help'.`);
+      console.error(`Unknown command: ${cmd}\nRun 'agentcrew --help'.`);
       process.exit(1);
   }
 }

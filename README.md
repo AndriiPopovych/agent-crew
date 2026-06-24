@@ -2,8 +2,10 @@
 
 Drop a proven multi-agent Claude Code crew into any repo with one command.
 
-![npm](https://img.shields.io/npm/v/agent-crew)
-![license](https://img.shields.io/npm/l/agent-crew)
+![npm](https://img.shields.io/npm/v/agentcrew)
+![license](https://img.shields.io/npm/l/agentcrew)
+
+> npm package: `agentcrew` (the brand/repo is `agent-crew`)
 
 ---
 
@@ -37,9 +39,9 @@ Native Claude Code subagents are ephemeral -- they spin up, do one thing, and ex
 To get started run these commands in your project directory:
 
     cd your-project
-    npx agent-crew init      # autodetect stack, confirm commands/port, scaffold .agent-crew/
-    agent-crew doctor        # check tmux, package manager, port
-    agent-crew launch        # start the teamlead; it self-onboards on first run
+    npx agentcrew init      # autodetect stack, confirm commands/port, scaffold .agent-crew/
+    agentcrew doctor        # check tmux, package manager, port
+    agentcrew launch        # start the teamlead; it self-onboards on first run
 
 Then talk only to the teamlead. Give it a task in plain language. It clarifies any ambiguities, decomposes the work, and delegates through the pipeline: dev -> code review -> QA -> commit. You get a report when it is done; push to remote when you have confirmed.
 
@@ -67,7 +69,7 @@ The crew is split into three layers:
 
 **3. `team.config.yaml`** -- single source of truth about *your* project. The CLI generates two things from it: `agents/_shared/project.md` (what every agent reads at bootstrap -- stack, commands, paths, gotchas, language) and `_bin/*.sh` (the launch/doctor/ensure-role scripts with your actual session prefix and commands).
 
-To reconfigure a project: edit `team.config.yaml`, run `agent-crew sync`. Role `CLAUDE.md` files stay clean.
+To reconfigure a project: edit `team.config.yaml`, run `agentcrew sync`. Role `CLAUDE.md` files stay clean.
 
 **Pipeline:**
 
@@ -107,7 +109,7 @@ Bracketed roles are optional and lazy -- the teamlead boots them on demand, only
 
 On the first `launch`, the teamlead runs a **deep self-onboarding** before accepting any task: it reads key modules, entry points, tests, and conventions, then writes `knowledge/onboarding.md` and `knowledge/architecture.md`. It shows you a summary of what it understands about your project (stack, architecture, active zones, risks) and asks what to work on.
 
-This is a one-time step. The onboarding files are committed and reused across sessions. If the codebase drifts significantly, run `agent-crew onboard --refresh` to regenerate.
+This is a one-time step. The onboarding files are committed and reused across sessions. If the codebase drifts significantly, run `agentcrew onboard --refresh` to regenerate.
 
 ---
 

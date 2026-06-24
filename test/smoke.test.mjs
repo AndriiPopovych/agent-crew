@@ -7,7 +7,7 @@ const cli = fileURLToPath(new URL("../bin/cli.mjs", import.meta.url));
 
 test("--help exits 0 and prints usage", () => {
   const out = execFileSync("node", [cli, "--help"], { encoding: "utf8" });
-  assert.match(out, /Usage: agent-crew/);
+  assert.match(out, /Usage: agentcrew/);
   assert.match(out, /init/);
   assert.match(out, /launch/);
 });

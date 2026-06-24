@@ -7,7 +7,7 @@ import { renderProjectMd, renderBinScripts } from "./render.mjs";
 export function syncGenerated(targetRoot) {
   const ac = join(targetRoot, ".agent-crew");
   const cfgPath = join(ac, "team.config.yaml");
-  if (!existsSync(cfgPath)) throw new Error(`no team.config.yaml at ${cfgPath} — run 'agent-crew init' first`);
+  if (!existsSync(cfgPath)) throw new Error(`no team.config.yaml at ${cfgPath} — run 'agentcrew init' first`);
 
   const cfg = readConfig(cfgPath);
   const { ok, errors } = validateConfig(cfg);
