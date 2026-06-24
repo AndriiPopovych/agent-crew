@@ -22,6 +22,10 @@
 | Конфігурація | **Автодетект + підтвердження** | Сканує package.json/lockfile/фреймворк, вгадує команди й порт, показує на підтвердження. |
 | Нейм | **agent-crew** | npm-пакет + repo + префікс tmux-сесій. |
 | Ліцензія | **MIT** | Максимум adoption. |
+| Розташування в чужому repo | **`.agent-crew/`** — самодостатня прихована папка | Неінвазивно, не сміттить repo, легко в `.gitignore` або видалити. Усе (агенти, конфіг, knowledge, `.inbox`) в одному місці. |
+| Onboarding | **Гібрид: CLI сідить + teamlead досліджує** | CLI робить дешевий статичний скан → seed; teamlead на першому launch робить глибокий аналіз і збагачує project brief. Onboarding — відповідальність teamlead, не окрема роль. |
+
+**Наскрізна ціль:** мінімальний (в ідеалі нульовий) bootstrap. Користувач має змогу додати команду в **будь-який** чужий repo і одразу почати отримувати користь — команда сама досліджує проєкт, структурує знання і готова до роботи. Сценарій: «підійшов до людини, яка працює з Claude над проєктом, сказав *спробуй цю команду* — вона стартонула і поїхала».
 
 ## 3. Архітектура: три шари
 
@@ -45,12 +49,47 @@
 
 **Чому конфіг, а не пряма підстановка в кожен CLAUDE.md:** переналаштувати проєкт = редагувати один yaml + `agent-crew sync`, а не правити 6 файлів. Markdown ролей лишається чистим від проєктних деталей → легше підтримувати в open source і апгрейдити шаблони.
 
+## 3.5. Self-contained layout у чужому repo
+
+Уся команда живе в одній прихованій папці `.agent-crew/` — неінвазивно, легко видалити (`rm -rf .agent-crew`) або сховати в `.gitignore`:
+
+```
+<host-repo>/
+└── .agent-crew/
+    ├── team.config.yaml          # єдине джерело правди про проєкт (CLI генерує, юзер править)
+    ├── agents/                   # ролі — копії шаблонів, project-agnostic
+    │   ├── _shared/
+    │   │   ├── protocol.md        # движок (.inbox, atomic writes, bootstrap) — дослівно
+    │   │   └── project.md         # ГЕНЕРУЄТЬСЯ з config (команди, шляхи, gotchas, мова)
+    │   ├── teamlead/CLAUDE.md
+    │   ├── dev/CLAUDE.md
+    │   ├── qa/CLAUDE.md
+    │   └── {ux,architect,techwriter}/CLAUDE.md   # лише вибрані опц. ролі
+    ├── knowledge/                # СТРУКТУРОВАНЕ ЗНАННЯ про проєкт (onboarding output)
+    │   ├── onboarding.md         # brief: домен, архітектура, конвенції, активні зони
+    │   └── architecture.md       # карта модулів/директорій/точок входу (deep scan)
+    ├── _bin/                     # ГЕНЕРУЮТЬСЯ: launch.sh, doctor.sh, ensure-role.sh
+    └── .inbox/                   # runtime-стейт (gitignored): status.md, tasks/, TASK-N/
+```
+
+Префікс tmux-сесій = `project.name` (дефолт — ім'я директорії repo): `<name>-teamlead`, `<name>-dev`, …
+
+## 3.6. Onboarding: як команда «розуміє» чужий проєкт
+
+Двофазний, гібридний — щоб мінімізувати ручний bootstrap:
+
+**Фаза 1 — статичний seed (CLI, миттєво, без LLM):** при `init` CLI сканує repo детерміновано: файл-дерево, `package.json`/lockfile/фреймворк, `git log` (активні зони, контриб'ютори), README, наявні `CLAUDE.md`/`AGENTS.md`/`.cursorrules`, `docs/`. З цього сідить `agents/_shared/project.md` і дефолтний `sources_of_truth`. Жодного хардкоду PRD — усе з реального вмісту.
+
+**Фаза 2 — глибокий self-onboarding (teamlead, на першому launch, один раз):** перш ніж приймати роботу, teamlead робить дослідницький прохід (читає ключові модулі, точки входу, тести, конвенції) і пише структурований brief у `knowledge/onboarding.md` + `knowledge/architecture.md`. Це і є «структурування інформації про проєкт». Результат комітиться (персистентний, можна рев'ювити/правити), не повторюється щоразу.
+
+**Staleness:** `onboarding.md` має у frontmatter git-SHA, на якому згенеровано. Teamlead на launch порівнює з поточним HEAD; при значному дрейфі — пропонує `agent-crew onboard --refresh`. У v1 — проста позначка + ручний refresh, без авто-інвалідизації.
+
 ## 4. Схема `team.config.yaml`
 
 ```yaml
 project:
-  name: sync-matrix          # → префікс сесій: sync-matrix-teamlead, -dev, …
-  root: /root/projects/sync-matrix
+  name: sync-matrix          # дефолт — ім'я директорії repo; → префікс сесій: sync-matrix-teamlead, …
+  root: /root/projects/sync-matrix    # автодетект (git toplevel / cwd)
   language: ua               # мова спілкування агентів
 
 runtime:
@@ -107,10 +146,11 @@ gotchas:                     # вільний список проєктних г
 
 | Команда | Що робить |
 |---|---|
-| `npx agent-crew init` | Автодетект стека → підтвердження команд/порту → вибір опц. ролей і мови → пише `team.config.yaml` → генерує `agents/` (ролі + `_shared/project.md` + `_bin/*.sh`) → скафолдить `.inbox/`, дописує `.gitignore` → друкує інструкцію запуску |
+| `npx agent-crew init` | Автодетект + **статичний скан repo** (фаза 1 onboarding) → підтвердження команд/порту → вибір опц. ролей і мови → пише `.agent-crew/team.config.yaml` → генерує `.agent-crew/agents/` (ролі + `_shared/project.md` + `_bin/*.sh`) → seed `knowledge/` → скафолдить `.inbox/`, дописує `.gitignore` (`.agent-crew/.inbox/`) → друкує наступний крок (`launch`) |
+| `agent-crew launch` | Обгортка над tmux+claude: піднімає сесію teamlead, polling, вставляє bootstrap-промпт, `tmux attach`. **Якщо `knowledge/onboarding.md` ще немає** — teamlead спершу робить self-onboarding (фаза 2), показує summary і питає, над чим працювати |
+| `agent-crew onboard [--refresh]` | Явний запуск фази-2 onboarding (deep scan teamlead'ом) поза launch. `--refresh` — перегенерувати brief на поточному HEAD |
 | `agent-crew sync` | Перегенерує згенеровані файли (`project.md`, `_bin/`) з `team.config.yaml`. Після правки конфіга або апгрейду пакета |
-| `agent-crew doctor` | Preconditions: tmux/package-manager встановлені, порт вільний, env на місці, `.inbox/` валідний |
-| `agent-crew launch` | Обгортка над tmux+claude: піднімає сесію teamlead, polling, вставляє bootstrap-промпт, `tmux attach` |
+| `agent-crew doctor` | Preconditions: tmux/package-manager встановлені, порт вільний, env на місці, `.agent-crew/` валідний |
 
 **Автодетект (init):**
 - package manager — з lockfile (`bun.lock`→bun, `pnpm-lock.yaml`→pnpm, `yarn.lock`→yarn, інакше npm)
@@ -124,27 +164,31 @@ gotchas:                     # вільний список проєктних г
 
 ## 6. UX роботи з командою (end-to-end)
 
-Разовий setup:
+Сценарій «спробуй цю команду» (мінімальний bootstrap):
 ```bash
-cd ~/projects/my-app
-npx agent-crew init
-agent-crew doctor
+cd ~/any-project          # будь-який чужий repo, де людина працює з Claude
+npx agent-crew init       # автодетект + статичний скан, ~30с, кілька підтверджень
+agent-crew launch         # поїхали
 ```
 
-Старт:
-```bash
-agent-crew launch     # tmux new-session teamlead → claude → polling → bootstrap-промпт → attach
-```
-Тімлід сам піднімає `my-app-dev`, `my-app-qa`, `my-app-devserver`; ux/architect/techwriter — lazy.
+На першому `launch`:
+1. tmux new-session teamlead → claude → polling → bootstrap-промпт → attach
+2. teamlead бачить, що `knowledge/onboarding.md` ще немає → робить **self-onboarding** (deep scan): читає ключові модулі, конвенції, тести, git-історію → пише `knowledge/onboarding.md` + `architecture.md`
+3. teamlead показує summary («ось що я зрозумів про твій проєкт: стек, архітектура, активні зони, ризики») і питає: **«над чим працюємо?»**
+
+Далі teamlead сам піднімає `any-project-dev`, `any-project-qa`, devserver; ux/architect/techwriter — lazy.
+
+**Гнучке прийняття роботи** (не лише curated feedback-файл — це знижувало поріг bootstrap):
+користувач дає задачу teamlead'у в будь-якій формі — звичайний текст у чаті, посилання на GitHub-issue, шлях до feedback-файлу, або TODO. Teamlead однаково декомпозує → делегує.
 
 Робочий цикл — користувач спілкується **лише з тімлідом**:
 ```
-Ти: «Обробляй фідбек у NEW_FEEDBACK.md»
+Ти: «полагодь логін, ламається на порожньому email» (або: «обробляй FEEDBACK.md»)
   → тімлід: декомпозує → TASK-1..N → dev → code review → QA → commit
-  → тімлід: «Batch готовий, звіт у docs/user-testing/<дата>.md»
+  → тімлід: звіт про зроблене
 Ти: тестуєш, пушиш у remote коли підтвердив
 ```
-`launch` НЕ запускає headless-процес — це лише зручний старт tmux+claude. Уся оркестрація — в `CLAUDE.md` тімліда.
+`launch` НЕ запускає headless-процес — це лише зручний старт tmux+claude. Уся оркестрація (включно з onboarding) — в `CLAUDE.md` тімліда.
 
 ## 7. Структура repo
 
@@ -193,12 +237,13 @@ agent-crew/
 
 ## 9. Тестування
 - **Unit:** `detect` (фікстури package.json/lockfile → очікувані команди), `render` (snapshot згенерованих `project.md`/`_bin`), валідація config.
-- **Integration:** прогін `init` проти fixture-репо (Next+bun, Vite+pnpm, generic) → assert `agents/` і `team.config.yaml`; `sync` ідемпотентний; `init` не перетирає кастомні правки.
+- **Integration:** прогін `init` проти fixture-репо (Next+bun, Vite+pnpm, generic) → assert `.agent-crew/` (agents/, team.config.yaml, seed knowledge/, .inbox/) і коректний статичний onboarding-seed; `sync` ідемпотентний; `init` не перетирає кастомні правки.
 - **Не покривається CI:** живий tmux-прогін потребує реального Claude Code → manual/dogfood на `examples/sync-matrix`. README чесно це зазначає: CI тестує скафолдер, не живих агентів.
 
 ## 10. Scope v1 (YAGNI)
-- ✅ **В v1:** `init` + `sync` + `doctor` + `launch`; core 3 ролі + 3 опц.; автодетект Node/bun-екосистеми + generic-фолбек; MIT; README; `examples/sync-matrix`; генерик-principles.
-- ⏳ **Відкладаємо:** Claude Code plugin-пакування, глибокий автодетект Python/Go/Rust, web-UI, телеметрія, кастомні pipeline-стадії.
+- ✅ **В v1:** `init` + `launch` + `onboard` + `sync` + `doctor`; self-contained `.agent-crew/`; гібридний onboarding (CLI static seed + teamlead deep self-onboarding); core 3 ролі + 3 опц.; автодетект Node/bun-екосистеми + generic-фолбек; гнучке прийняття роботи; MIT; README; `examples/sync-matrix`; генерик-principles.
+- ⏳ **Відкладаємо:** авто-інвалідизація onboarding (у v1 — ручний `--refresh`); Claude Code plugin-пакування; глибокий автодетект Python/Go/Rust; web-UI; телеметрія; кастомні pipeline-стадії.
 
 ## 11. Ризики / найбільша частина роботи
-Найбільший обсяг — **не CLI, а акуратна генерикація 6 файлів ролей** (~3500 рядків промптів): вичистити sync-matrix-специфіку, не зламавши логіку. Делікатний рефакторинг, який варто робити з верифікацією (порівнювати поведінку/структуру до/після), а не наосліп.
+- **Генерикація 6 файлів ролей** (~3500 рядків промптів) — найбільший обсяг: вичистити sync-matrix-специфіку, не зламавши логіку. Делікатний рефакторинг з верифікацією (порівнювати структуру до/після), а не наосліп.
+- **Якість self-onboarding** — фаза 2 має давати корисний brief на незнайомому коді в розумний бюджет токенів/часу. Інструкція teamlead'у для onboarding потребує окремого ітерування й dogfood на різних repo (не лише sync-matrix), бо це новий, найризикованіший компонент «zero-bootstrap» обіцянки.
