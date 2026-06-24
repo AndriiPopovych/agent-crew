@@ -1,0 +1,6 @@
+docs/
+examples/
+test/
+.github/
+.agent-crew/
+*.test.mjs
