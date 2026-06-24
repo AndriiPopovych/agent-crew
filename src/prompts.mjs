@@ -1,7 +1,6 @@
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
-
-const OPT_ROLES = ["ux", "architect", "techwriter"];
+import { OPT_ROLES } from "./config.mjs";
 
 export function parseYesNo(answer, dflt) {
   const a = answer.trim().toLowerCase();

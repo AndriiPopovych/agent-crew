@@ -2,14 +2,13 @@ import { cpSync, mkdirSync, writeFileSync, existsSync, readFileSync, appendFileS
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { writeConfig } from "./config.mjs";
+import { writeConfig, OPT_ROLES } from "./config.mjs";
 import { renderProjectMd, renderBinScripts } from "./render.mjs";
 import { scanRepo } from "./scan.mjs";
 import { seedKnowledge } from "./seed.mjs";
 
 const TEMPLATES = fileURLToPath(new URL("../templates", import.meta.url));
 const CORE_ROLES = ["teamlead", "dev", "qa"];
-const OPT_ROLES = ["ux", "architect", "techwriter"];
 const GITIGNORE_LINE = ".agent-crew/.inbox/";
 
 function headSha(root) {
@@ -72,4 +71,4 @@ export function scaffold(cfg, { targetRoot, force = false }) {
   if (!has) appendFileSync(gi, (existsSync(gi) ? "\n" : "") + GITIGNORE_LINE + "\n");
 }
 
-export { CORE_ROLES, OPT_ROLES };
+export { CORE_ROLES };
