@@ -1,0 +1,51 @@
+# Illustrative example — the real project that agent-crew was extracted from.
+# Do NOT copy this file. Run `agent-crew init` in YOUR repo — it autodetects your stack.
+
+project:
+  name: sync-matrix
+  root: /root/projects/sync-matrix
+  language: ua
+
+runtime:
+  package_manager: bun
+  exec_prefix: bun --bun
+
+commands:
+  dev: bun --bun run dev
+  build: bun --bun run build
+  lint: bun --bun run lint
+  test: bun --bun run test
+  e2e: bun --bun run test:e2e
+
+devserver:
+  port: 3000
+  health_url: http://localhost:3000
+
+roles:
+  teamlead: true
+  dev: true
+  qa: true
+  ux: true
+  architect: true
+  techwriter: true
+
+sources_of_truth:
+  - path: docs/principles.md
+    what: методологія + стандарт code review
+    how: read повністю
+  - path: CLAUDE.md
+    what: архітектура, шари, конвенції
+    how: read один раз
+  - path: docs/qa/**/*.md
+    what: минулі QA-звіти
+    how: grep перед декомпозицією
+
+quality_standard: docs/principles.md
+
+memory:
+  path: ~/.claude/projects/-root-projects-sync-matrix/memory/MEMORY.md
+
+gotchas:
+  - "Завжди `bun --bun`, не npm — системний Node=18, фреймворк потребує >=20.9"
+  - "RLS у Supabase — перевіряй права ролей viewer/planner/approver перед будь-якими запитами до БД"
+  - "Міграції застосовуються через scripts/apply-migration.sh (тільки teamlead); dev/qa не мають доступу до SUPABASE_DB_URL"
