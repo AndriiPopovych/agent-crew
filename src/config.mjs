@@ -53,7 +53,7 @@ export function validateConfig(cfg) {
 export function writeConfig(path, cfg) {
   const header =
     "# agent-crew project config — single source of truth.\n" +
-    "# Edit then run `agent-crew sync` to regenerate generated files.\n\n";
+    "# Edit then run `agentcrew sync` to regenerate generated files.\n\n";
   writeFileSync(path, header + stringify(cfg), "utf8");
 }
 

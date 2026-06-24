@@ -88,7 +88,7 @@ generated_at: <ISO date>
 
 ### Staleness check
 
-Якщо `generated_at_sha` у `onboarding.md` значно відстає від поточного `git HEAD` (>100 комітів) — запропонуй: «Онбординг застарів на N комітів — запусти `agent-crew onboard --refresh` або підтверди що архітектура не змінилась».
+Якщо `generated_at_sha` у `onboarding.md` значно відстає від поточного `git HEAD` (>100 комітів) — запропонуй: «Онбординг застарів на N комітів — запусти `agentcrew onboard --refresh` або підтверди що архітектура не змінилась».
 
 ---
 

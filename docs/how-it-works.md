@@ -148,9 +148,9 @@ Core roles (teamlead, dev, QA) are started eagerly after onboarding completes.
 
 ## 5. Two-phase onboarding
 
-### Phase 1 — CLI static seed (at `agent-crew init`)
+### Phase 1 — CLI static seed (at `agentcrew init`)
 
-When you run `agent-crew init`, the CLI:
+When you run `agentcrew init`, the CLI:
 
 1. Detects the project (package manager, framework, scripts) via `src/detect.mjs`.
 2. Prompts for confirmation / overrides via `src/prompts.mjs`.
@@ -168,7 +168,7 @@ When you run `agent-crew init`, the CLI:
 
 This phase is fast and fully automated. It produces a correct scaffold but shallow project knowledge.
 
-### Phase 2 — Teamlead deep self-onboarding (at first `agent-crew launch`)
+### Phase 2 — Teamlead deep self-onboarding (at first `agentcrew launch`)
 
 On first launch, the generated `launch.sh` sends a bootstrap prompt that instructs the teamlead agent to check `knowledge/onboarding.md`. Because `status` is `pending-deep-onboarding`, teamlead:
 

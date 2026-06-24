@@ -16,6 +16,6 @@
 
 **The values here (Supabase, Next.js, `bun --bun`) are illustrative — specific to sync-matrix.**
 
-When you run `agent-crew init` in your own repository, the tool autodetects your stack (lockfile → package manager, `package.json` scripts → commands, framework → dev-server port). You do not copy or adapt this file — you get a freshly generated `team.config.yaml` tuned to your project.
+When you run `agentcrew init` in your own repository, the tool autodetects your stack (lockfile → package manager, `package.json` scripts → commands, framework → dev-server port). You do not copy or adapt this file — you get a freshly generated `team.config.yaml` tuned to your project.
 
 See [`docs/config-reference.md`](../../docs/config-reference.md) for the full schema.

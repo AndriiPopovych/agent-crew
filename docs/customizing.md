@@ -10,12 +10,12 @@ Each enabled role gets its own `CLAUDE.md` under `.agent-crew/agents/<role>/CLAU
 
 **You can edit these files freely.** Adjust the dev role's review checklist, tighten the QA role's test requirements, or rewrite the teamlead's decomposition rules to match your workflow.
 
-**`agent-crew sync` will NOT overwrite your edits.** The sync command (implemented in `src/sync.mjs`) regenerates only two things:
+**`agentcrew sync` will NOT overwrite your edits.** The sync command (implemented in `src/sync.mjs`) regenerates only two things:
 
 1. `.agent-crew/agents/_shared/project.md` — the generated project context (from `team.config.yaml`)
 2. `.agent-crew/_bin/*.sh` — the generated shell scripts (`launch.sh`, `doctor.sh`, `ensure-role.sh`)
 
-Role `CLAUDE.md` files are never touched by sync. They are written once at `agent-crew init` (copied verbatim from `templates/agents/<role>/CLAUDE.md`) and are yours to own from that point.
+Role `CLAUDE.md` files are never touched by sync. They are written once at `agentcrew init` (copied verbatim from `templates/agents/<role>/CLAUDE.md`) and are yours to own from that point.
 
 > If you want to reset a role's `CLAUDE.md` to the upstream template, copy it manually from the npm package's `templates/agents/<role>/CLAUDE.md`. Sync will not do this automatically.
 
@@ -23,7 +23,7 @@ Role `CLAUDE.md` files are never touched by sync. They are written once at `agen
 
 ## 2. Adding `gotchas` and `sources_of_truth`
 
-Both fields live in `team.config.yaml`. Edit them directly, then run `agent-crew sync` to regenerate `project.md` so every agent sees the updated context on their next bootstrap.
+Both fields live in `team.config.yaml`. Edit them directly, then run `agentcrew sync` to regenerate `project.md` so every agent sees the updated context on their next bootstrap.
 
 ### `gotchas`
 
@@ -39,7 +39,7 @@ gotchas:
 After editing, run:
 
 ```bash
-agent-crew sync
+agentcrew sync
 ```
 
 The updated gotchas will appear in `.agent-crew/agents/_shared/project.md` and every role will read them on next bootstrap.
@@ -66,7 +66,7 @@ sources_of_truth:
 
 These appear in `project.md`'s "Sources of truth" table. Teamlead consults them when decomposing tasks; dev and QA consult them when scoping work. The three default entries (README, CLAUDE.md, docs) are set by `buildConfig()` in `src/config.mjs` — add project-specific entries below them.
 
-After editing, run `agent-crew sync`.
+After editing, run `agentcrew sync`.
 
 ---
 
@@ -80,7 +80,7 @@ quality_standard: docs/engineering/code-review-standards.md
 
 **Fallback:** if `quality_standard` is `null` (the default after `init`), teamlead falls back to `.agent-crew/knowledge/principles.md` — the generic principles file copied from the package template at init time.
 
-To override: set the path in `team.config.yaml` and run `agent-crew sync`. The path appears in `project.md`'s "Quality standard" section, which every role reads on bootstrap.
+To override: set the path in `team.config.yaml` and run `agentcrew sync`. The path appears in `project.md`'s "Quality standard" section, which every role reads on bootstrap.
 
 The path can be anything readable from the project root: a file you already have, a doc you write specifically for the crew, or an external standard you commit to your repo.
 
@@ -104,16 +104,16 @@ roles:
 
 **At `agent-crew init`:** only enabled roles get a `CLAUDE.md` copied into `.agent-crew/agents/<role>/`. Disabled roles have no directory.
 
-**After init:** if you enable a role in `team.config.yaml` and run `agent-crew sync`, sync only regenerates `project.md` and `_bin/`. It does **not** create a new role directory. To add a role after init, copy the template manually:
+**After init:** if you enable a role in `team.config.yaml` and run `agentcrew sync`, sync only regenerates `project.md` and `_bin/`. It does **not** create a new role directory. To add a role after init, copy the template manually:
 
 ```bash
 mkdir -p .agent-crew/agents/ux
-cp node_modules/agent-crew/templates/agents/ux/CLAUDE.md .agent-crew/agents/ux/CLAUDE.md
+cp node_modules/agentcrew/templates/agents/ux/CLAUDE.md .agent-crew/agents/ux/CLAUDE.md
 ```
 
-Then update `roles.ux: true` in `team.config.yaml` and run `agent-crew sync` so `project.md` lists the role as active.
+Then update `roles.ux: true` in `team.config.yaml` and run `agentcrew sync` so `project.md` lists the role as active.
 
-Optional roles are launched **lazily** by teamlead — only when a task tagged `ux-required`, `architect-review`, or `docs-required` arrives. They are never started at `agent-crew launch` time.
+Optional roles are launched **lazily** by teamlead — only when a task tagged `ux-required`, `architect-review`, or `docs-required` arrives. They are never started at `agentcrew launch` time.
 
 ---
 
@@ -133,6 +133,6 @@ Understanding what lives where helps you know what to edit for any given change.
 
 **Rule of thumb:**
 - To change *what agents do* → edit `.agent-crew/agents/<role>/CLAUDE.md`.
-- To change *what agents know about the project* → edit `team.config.yaml`, then run `agent-crew sync`.
+- To change *what agents know about the project* → edit `team.config.yaml`, then run `agentcrew sync`.
 - To change *how the engine scaffolds or syncs* → open a PR to the `agent-crew` package itself.
 - Never edit `project.md` or `_bin/*.sh` by hand — your changes will be overwritten by the next `sync`.
