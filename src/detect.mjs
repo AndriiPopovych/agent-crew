@@ -75,5 +75,6 @@ export function detectProject(cwd) {
       pkg = null;
     }
   }
-  return detectFromFiles({ lockfiles, pkg, name: basename(root), root });
+  const name = (pkg?.name && typeof pkg.name === "string" && pkg.name.trim()) ? pkg.name.trim() : basename(root);
+  return detectFromFiles({ lockfiles, pkg, name, root });
 }
