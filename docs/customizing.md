@@ -117,7 +117,33 @@ Optional roles are launched **lazily** by teamlead — only when a task tagged `
 
 ---
 
-## 5. Engine / role / config layering
+## 5. gstack QA integration
+
+[gstack](https://github.com/garrytan/gstack) is a collection of Claude Code skills that includes `/qa-only`, a browser-driven QA skill that launches a dev server, runs a visual pass, and reports findings.
+
+**Detection at `agentcrew init`:** init checks for gstack at `~/.claude/skills/gstack`. If it is not found, init offers to install it — it prints the install command and asks for consent before doing anything. It never installs silently.
+
+**Setting `qa_command`:** there are three options.
+
+```yaml
+# Option 1 — gstack (default when gstack is detected at init)
+qa_command: /qa-only
+
+# Option 2 — your own QA shell command
+qa_command: "bun --bun run test && bun --bun run test:e2e"
+
+# Option 3 — fall back to the project's test commands (commands.test + commands.e2e)
+qa_command: ""
+```
+
+After changing `qa_command`, run `agentcrew sync` to propagate the value into `project.md`.
+
+**`agentcrew doctor` warning:** if `qa_command` starts with `/` (i.e. it is a slash-skill) but gstack is absent from `~/.claude/skills/gstack`, doctor prints a warning and tells you how to install gstack. The warning does not block startup.
+
+---
+
+## 6. Engine / role / config layering
+
 
 Understanding what lives where helps you know what to edit for any given change.
 

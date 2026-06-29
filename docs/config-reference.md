@@ -152,6 +152,23 @@ The port the dev server listens on. Flows into:
 
 URL to `curl` for health checks. Flows into `project.md` "Health URL" field and is used by `_bin/doctor.sh`.
 
+### `qa_command`
+
+| | |
+|---|---|
+| **Type** | string |
+| **Default** | `"/qa-only"` |
+
+The QA entrypoint used by the QA role and teamlead when triggering a QA pass. Can be:
+
+- A gstack skill (e.g. `/qa-only`) — the recommended default when gstack is installed.
+- Any shell command (e.g. `"bun --bun run test && bun --bun run test:e2e"`) — if you want a fully custom QA pipeline.
+- An empty string `""` — QA falls back to the project's `commands.test` and `commands.e2e` entries.
+
+Flows into:
+- `agents/_shared/project.md` — QA and teamlead roles read this to know what command to run.
+- `_bin/doctor.sh` — when the value starts with `/`, doctor checks that gstack is present at `~/.claude/skills/gstack` and warns if it is missing.
+
 ---
 
 ## `roles`
@@ -348,6 +365,8 @@ commands:
 devserver:
   port: 3000
   health_url: http://localhost:3000
+
+qa_command: /qa-only
 
 roles:
   teamlead: true
