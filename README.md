@@ -119,6 +119,7 @@ This is a one-time step. The onboarding files are committed and reused across se
 - tmux (https://github.com/tmux/tmux)
 - Claude Code CLI (`claude` on PATH)
 - git
+- **gstack** (optional, recommended) — QA uses gstack's `/qa-only` skill by default; `init` offers to install it if not found. Configurable via the `qa_command` field in `team.config.yaml`.
 
 ---
 
