@@ -18,6 +18,11 @@ export function parseRoleToggles(csv) {
   return Object.fromEntries(OPT_ROLES.map((r) => [r, chosen.has(r)]));
 }
 
+// Pure resolution of the QA entrypoint based on gstack availability + install decision.
+export function resolveQaCommand({ gstackPresent, install }) {
+  return gstackPresent || install ? "/qa-only" : "";
+}
+
 export async function runInitPrompts(detected) {
   const rl = createInterface({ input: stdin, output: stdout });
   try {

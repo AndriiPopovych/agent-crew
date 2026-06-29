@@ -555,6 +555,7 @@ tmux send-keys -t <prefix>-dev "Code review returned. Read review_notes path fro
 **Де тестувати:** <конкретні URL/команди/сценарії>
 **На що звернути увагу:** <суміжні місця де могла з'явитися регресія>
 **Відомі обмеження:** <якщо є>
+**QA entrypoint:** <значення `qa_command` з `_shared/project.md`; якщо не задано — використовуй команди запуску/тести з `project.md`>
 ```
 
 ### Запуск

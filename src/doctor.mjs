@@ -3,7 +3,7 @@ import { execSync } from "node:child_process";
 export function buildDoctorChecks(cfg) {
   const pm = cfg.runtime.package_manager;
   const port = cfg.devserver.port;
-  return [
+  const checks = [
     { label: "tmux installed", cmd: "command -v tmux >/dev/null" },
     { label: `${pm} installed`, cmd: `command -v ${pm} >/dev/null` },
     {
@@ -12,6 +12,13 @@ export function buildDoctorChecks(cfg) {
     },
     { label: ".agent-crew/.inbox present", cmd: "test -d .agent-crew/.inbox" },
   ];
+  if (typeof cfg.qa_command === "string" && cfg.qa_command.startsWith("/")) {
+    checks.push({
+      label: `gstack installed (for QA entrypoint ${cfg.qa_command})`,
+      cmd: "test -f \"$HOME/.claude/skills/gstack/VERSION\"",
+    });
+  }
+  return checks;
 }
 
 export function runDoctor(cfg, { cwd = process.cwd() } = {}) {

@@ -21,6 +21,8 @@ devserver:
   port: 3000
   health_url: http://localhost:3000
 
+qa_command: "/qa-only" # gstack QA skill; "" → fall back to test commands
+
 roles:
   teamlead: true
   dev: true
