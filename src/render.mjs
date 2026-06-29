@@ -4,6 +4,9 @@ function row(k, v) {
 
 export function renderProjectMd(cfg) {
   const { project, runtime, commands, devserver, roles } = cfg;
+  const qaLine = cfg.qa_command
+    ? "`" + cfg.qa_command + "` — QA починає кожну задачу з цього (gstack-скіл або команда)."
+    : "не задано — QA тестує через команди запуску/тести проєкту.";
   const enabledRoles = Object.entries(roles)
     .filter(([, on]) => on)
     .map(([r]) => r);
@@ -41,6 +44,9 @@ export function renderProjectMd(cfg) {
 | Дія | Команда |
 |---|---|
 ${cmdRows}
+
+## QA entrypoint
+${qaLine}
 
 ## Dev-сервер
 - **Порт:** ${devserver.port}

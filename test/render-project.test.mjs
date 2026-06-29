@@ -22,6 +22,12 @@ test("project.md contains commands, port, language, session prefix", () => {
   assert.match(md, /Мова спілкування.*ua/i);
 });
 
+test("project.md surfaces qa_command", () => {
+  const md = renderProjectMd(cfg);
+  assert.match(md, /QA entrypoint/i);
+  assert.match(md, /\/qa-only/);
+});
+
 test("project.md lists enabled roles only", () => {
   const md = renderProjectMd(cfg);
   assert.match(md, /architect/);
