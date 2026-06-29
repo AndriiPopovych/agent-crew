@@ -19,3 +19,8 @@ test("renderBinScripts returns launch/doctor/ensure-role with shebang and sessio
   assert.match(scripts["doctor.sh"], /3000/);
   assert.match(scripts["launch.sh"], /bun --bun run dev/);
 });
+
+test("doctor.sh includes a gstack check when qa_command is a slash-skill", () => {
+  const scripts = renderBinScripts(cfg);
+  assert.match(scripts["doctor.sh"], /gstack/);
+});
