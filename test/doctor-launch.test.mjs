@@ -16,6 +16,15 @@ test("doctor checks reference tmux, package manager, port", () => {
   for (const c of checks) assert.equal(typeof c.cmd, "string");
 });
 
+test("doctor adds a gstack check when qa_command is a slash-skill", () => {
+  const withGstack = buildConfig(detectFromFiles({ lockfiles: ["bun.lock"], pkg: { scripts: { dev: "next dev" } }, name: "demo", root: "/tmp/demo" }), {});
+  const labels = buildDoctorChecks(withGstack).map((c) => c.label).join(" | ");
+  assert.match(labels, /gstack/i);
+  const noSkill = buildConfig(detectFromFiles({ lockfiles: ["bun.lock"], pkg: { scripts: { dev: "next dev" } }, name: "demo", root: "/tmp/demo" }), { qaCommand: "" });
+  const labels2 = buildDoctorChecks(noSkill).map((c) => c.label).join(" | ");
+  assert.doesNotMatch(labels2, /gstack/i);
+});
+
 test("launch plan targets the teamlead session and includes bootstrap", () => {
   const plan = buildLaunchPlan(cfg);
   assert.equal(plan.session, "demo-teamlead");
