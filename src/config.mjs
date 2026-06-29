@@ -14,7 +14,7 @@ const DEFAULT_SOURCES = [
   { path: "docs/**/*.md", what: "наявна документація", how: "grep за темою" },
 ];
 
-export function buildConfig(detected, { roles = {}, language } = {}) {
+export function buildConfig(detected, { roles = {}, language, qaCommand } = {}) {
   const root = detected.project.root || process.cwd();
   return {
     project: {
@@ -24,6 +24,7 @@ export function buildConfig(detected, { roles = {}, language } = {}) {
     },
     runtime: { ...detected.runtime },
     commands: { ...detected.commands },
+    qa_command: qaCommand ?? "/qa-only",
     devserver: { ...detected.devserver },
     roles: {
       teamlead: true,
@@ -47,6 +48,7 @@ export function validateConfig(cfg) {
   if (!cfg?.roles?.teamlead || !cfg?.roles?.dev || !cfg?.roles?.qa) {
     errors.push("core roles (teamlead, dev, qa) must be enabled");
   }
+  if (cfg?.qa_command != null && typeof cfg.qa_command !== "string") errors.push("qa_command must be a string");
   return { ok: errors.length === 0, errors };
 }
 

@@ -34,6 +34,18 @@ test("validateConfig: rejects missing name and bad port", () => {
   assert.equal(errors.length, 2);
 });
 
+test("buildConfig: qa_command defaults to /qa-only, overridable, validated", () => {
+  const def = buildConfig(detected, {});
+  assert.equal(def.qa_command, "/qa-only");
+  const empty = buildConfig(detected, { qaCommand: "" });
+  assert.equal(empty.qa_command, "");
+  const custom = buildConfig(detected, { qaCommand: "npm run qa" });
+  assert.equal(custom.qa_command, "npm run qa");
+  const bad = buildConfig(detected, {});
+  bad.qa_command = 42;
+  assert.equal(validateConfig(bad).ok, false);
+});
+
 test("write then read round-trips", () => {
   const dir = mkdtempSync(join(tmpdir(), "ac-"));
   try {
