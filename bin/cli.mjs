@@ -3,7 +3,8 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { detectProject } from "../src/detect.mjs";
 import { buildConfig, readConfig, validateConfig } from "../src/config.mjs";
-import { runInitPrompts } from "../src/prompts.mjs";
+import { runInitPrompts, parseYesNo, resolveQaCommand } from "../src/prompts.mjs";
+import { isGstackInstalled, installGstack } from "../src/gstack.mjs";
 import { scaffold } from "../src/scaffold.mjs";
 import { syncGenerated } from "../src/sync.mjs";
 import { runDoctor } from "../src/doctor.mjs";
@@ -29,12 +30,35 @@ async function doInit() {
     process.exit(1);
   }
   const answers = await runInitPrompts(detected);
+
+  // gstack QA integration (recommended default) — offer install, never silent.
+  let gstackPresent = isGstackInstalled();
+  let installed = false;
+  if (!gstackPresent) {
+    const { createInterface } = await import("node:readline/promises");
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    try {
+      const yes = parseYesNo(
+        await rl.question("gstack не знайдено (рекомендований QA-інструмент, напр. /qa-only). Встановити зараз? [Y/n] "),
+        true
+      );
+      if (yes) {
+        console.log("Встановлюю gstack…");
+        installed = installGstack();
+        if (!installed) console.error("Не вдалось встановити gstack — продовжую без нього.");
+      }
+    } finally {
+      rl.close();
+    }
+  }
+  const qaCommand = resolveQaCommand({ gstackPresent, install: installed });
+
   const merged = {
     ...detected,
     commands: answers.commands,
     devserver: { port: answers.port, health_url: `http://localhost:${answers.port}` },
   };
-  const cfg = buildConfig(merged, { roles: answers.roles, language: answers.language });
+  const cfg = buildConfig(merged, { roles: answers.roles, language: answers.language, qaCommand });
   const { ok, errors } = validateConfig(cfg);
   if (!ok) {
     console.error("Конфіг невалідний:\n  - " + errors.join("\n  - "));
