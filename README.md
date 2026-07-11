@@ -2,10 +2,10 @@
 
 Drop a proven multi-agent Claude Code crew into any repo with one command.
 
-![npm](https://img.shields.io/npm/v/agentcrew)
-![license](https://img.shields.io/npm/l/agentcrew)
+![npm](https://img.shields.io/npm/v/@adnrii/agentcrew)
+![license](https://img.shields.io/npm/l/@adnrii/agentcrew)
 
-> npm package: `agentcrew` (the brand/repo is `agent-crew`)
+> npm package: `@adnrii/agentcrew` — installs the `agentcrew` command (the brand/repo is `agent-crew`)
 
 ---
 
@@ -38,8 +38,9 @@ Native Claude Code subagents are ephemeral -- they spin up, do one thing, and ex
 
 To get started run these commands in your project directory:
 
+    npm i -g @adnrii/agentcrew   # install the agentcrew command
     cd your-project
-    npx agentcrew init      # autodetect stack, confirm commands/port, scaffold .agent-crew/
+    agentcrew init          # autodetect stack, confirm commands/port, scaffold .agent-crew/
     agentcrew doctor        # check tmux, package manager, port
     agentcrew launch        # start the teamlead; it self-onboards on first run
 

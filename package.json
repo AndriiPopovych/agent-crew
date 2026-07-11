@@ -1,5 +1,6 @@
 {
-  "name": "agentcrew",
+  "name": "@adnrii/agentcrew",
+  "publishConfig": { "access": "public" },
   "version": "0.1.0",
   "description": "Pluggable tmux-based multi-agent crew for Claude Code — drop into any repo.",
   "author": "Andrii Popovych",
