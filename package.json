@@ -1,17 +1,42 @@
 {
   "name": "@adnrii/agentcrew",
-  "publishConfig": { "access": "public" },
-  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.1.1",
   "description": "Pluggable tmux-based multi-agent crew for Claude Code — drop into any repo.",
   "author": "Andrii Popovych",
   "homepage": "https://github.com/AndriiPopovych/agent-crew#readme",
-  "repository": { "type": "git", "url": "git+https://github.com/AndriiPopovych/agent-crew.git" },
-  "bugs": { "url": "https://github.com/AndriiPopovych/agent-crew/issues" },
-  "keywords": ["claude", "claude-code", "ai-agents", "multi-agent", "tmux", "scaffolding", "cli", "orchestration", "subagents"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndriiPopovych/agent-crew.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AndriiPopovych/agent-crew/issues"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai-agents",
+    "multi-agent",
+    "tmux",
+    "scaffolding",
+    "cli",
+    "orchestration",
+    "subagents"
+  ],
   "type": "module",
-  "bin": { "agentcrew": "bin/cli.mjs" },
-  "engines": { "node": ">=20" },
-  "files": ["bin", "src", "templates"],
+  "bin": {
+    "agentcrew": "bin/cli.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates"
+  ],
   "scripts": {
     "test": "node --test"
   },
