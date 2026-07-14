@@ -5,6 +5,7 @@ export function buildDoctorChecks(cfg) {
   const port = cfg.devserver.port;
   const checks = [
     { label: "tmux installed", cmd: "command -v tmux >/dev/null" },
+    { label: "claude (Claude Code CLI) installed", cmd: "command -v claude >/dev/null" },
     { label: `${pm} installed`, cmd: `command -v ${pm} >/dev/null` },
     {
       label: `port ${port} free`,
