@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildDoctorChecks } from "../src/doctor.mjs";
-import { buildLaunchPlan } from "../src/launch.mjs";
+import { buildLaunchPlan, preflightMessage } from "../src/launch.mjs";
 import { buildConfig } from "../src/config.mjs";
 import { detectFromFiles } from "../src/detect.mjs";
 
@@ -30,4 +30,20 @@ test("launch plan targets the teamlead session and includes bootstrap", () => {
   assert.equal(plan.session, "demo-teamlead");
   assert.ok(plan.steps.some((s) => /new-session/.test(s)));
   assert.ok(plan.steps.some((s) => /onboarding/i.test(s)));
+});
+
+test("doctor checks include claude (Claude Code CLI)", () => {
+  const labels = buildDoctorChecks(cfg).map((c) => c.label).join(" | ");
+  assert.match(labels, /claude/i);
+});
+
+test("preflightMessage: null when tmux+claude present; guides install when missing", () => {
+  assert.equal(preflightMessage({ hasTmux: true, hasClaude: true }), null);
+  const noTmux = preflightMessage({ hasTmux: false, hasClaude: true });
+  assert.match(noTmux, /tmux/);
+  assert.match(noTmux, /brew install tmux/);
+  assert.match(noTmux, /apt install tmux/);
+  const noClaude = preflightMessage({ hasTmux: true, hasClaude: false });
+  assert.match(noClaude, /claude/i);
+  assert.doesNotMatch(noClaude, /brew install tmux/);
 });
