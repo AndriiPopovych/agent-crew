@@ -9,8 +9,9 @@ import { scaffold } from "../src/scaffold.mjs";
 import { syncGenerated } from "../src/sync.mjs";
 import { runDoctor } from "../src/doctor.mjs";
 import { launch } from "../src/launch.mjs";
+import { runStatus, runAttach } from "../src/lifecycle.mjs";
 
-const [, , cmd] = process.argv;
+const [, , cmd, ...args] = process.argv;
 const cwd = process.cwd();
 
 function loadCfgOrExit(root) {
@@ -92,6 +93,16 @@ async function main() {
       loadCfgOrExit(cwd);
       process.exit(launch(cwd, { onboard: true }));
       break;
+    case "status": {
+      const cfg = loadCfgOrExit(cwd);
+      process.exit(await runStatus(cfg, { cwd }));
+      break;
+    }
+    case "attach": {
+      const cfg = loadCfgOrExit(cwd);
+      process.exit(runAttach(cfg, args[0] || "teamlead"));
+      break;
+    }
     case undefined:
     case "--help":
     case "-h":
@@ -101,6 +112,10 @@ Usage: agentcrew <command>
   init      Scan repo, scaffold .agent-crew/ into the current project
   launch    Start the teamlead tmux session (self-onboards on first run)
   onboard   Run/refresh the deep project onboarding
+  status    One-screen report: role sessions, devserver health, pipeline phase
+  attach    Attach to a role's tmux session (default: teamlead)
+  stop      Stop all crew sessions (--force to skip confirmation); .inbox state is kept
+  resume    Relaunch the teamlead and continue from .inbox/status.md
   sync      Regenerate generated files from team.config.yaml
   doctor    Check preconditions (tmux, package manager, port, env)`);
       break;

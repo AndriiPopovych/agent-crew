@@ -1,3 +1,4 @@
+import { parseYesNo } from "./prompts.mjs";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -92,6 +93,53 @@ export function buildStopPlan(cfg, sessions, pipeline) {
     needsConfirm: busy,
     reason: busy ? `фаза "${phase}"${task ? `, задача ${task}` : ""}` : null,
   };
+}
+
+// tmux ls; exit != 0 (no tmux server) → zero sessions, not an error.
+export function listTmuxSessions() {
+  const res = spawnSync("tmux", ["ls", "-F", "#{session_name}"], { encoding: "utf8" });
+  return res.status === 0 ? res.stdout : "";
+}
+
+export async function checkHealth(url, timeoutMs = 2000) {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function runStatus(cfg, { cwd = process.cwd() } = {}) {
+  const sessions = parseSessions(cfg.project.name, listTmuxSessions());
+  const pipeline = readPipelineState(join(cwd, ".agent-crew/.inbox"));
+  const health = await checkHealth(cfg.devserver?.health_url);
+  console.log(buildStatusReport(cfg, sessions, pipeline, { health }));
+  return 0;
+}
+
+export function runAttach(cfg, role = "teamlead") {
+  const prefix = cfg.project.name;
+  if (!cfg.roles?.[role]) {
+    const enabled = Object.entries(cfg.roles)
+      .filter(([, on]) => on)
+      .map(([r]) => r);
+    console.error(`Роль "${role}" не активна в team.config.yaml. Активні: ${enabled.join(", ")}.`);
+    return 1;
+  }
+  const session = `${prefix}-${role}`;
+  const sessions = parseSessions(prefix, listTmuxSessions());
+  if (!sessions.live.has(session)) {
+    console.error(
+      role === "teamlead"
+        ? `Сесія ${session} не запущена. Запусти: agentcrew launch`
+        : `Сесія ${session} не запущена. Воркерів піднімає teamlead: agentcrew attach`
+    );
+    return 1;
+  }
+  const res = spawnSync("tmux", ["attach", "-t", session], { stdio: "inherit" });
+  return res.status ?? 1;
 }
 
 export { CORE_ROLES };
