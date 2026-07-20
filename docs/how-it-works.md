@@ -204,3 +204,12 @@ After QA completes each task, teamlead reviews the candidates and records each d
 ```
 
 This keeps memory curated (only teamlead decides what persists) while letting every role contribute findings.
+
+## Lifecycle commands
+
+The CLI covers the daily loop around a running crew:
+
+- **`agentcrew status`** - reads `tmux ls` + `.inbox/status.md` and prints one screen: which role sessions are up (optional roles that are down show as lazy), devserver session + health ping, and the current pipeline phase/task with the age of the last update. Works even when the tmux server is not running.
+- **`agentcrew attach [role]`** - `tmux attach` to `<prefix>-<role>` with friendly errors (role disabled, session not running). Defaults to the teamlead.
+- **`agentcrew stop [--force]`** - kills all `<prefix>-*` sessions including the devserver. If `status.md` shows an active phase (not `idle`/`batch_done`), it asks for confirmation first. `.inbox/` is never touched, so a later `resume` can pick up where the crew left off.
+- **`agentcrew resume`** - runs `_bin/launch.sh` with `AGENT_CREW_RESUME=1`. The generated script swaps the bootstrap prompt for a recovery one: the teamlead reads `.inbox/status.md` and the current task artifacts, brings workers back up itself, shows a summary, and continues from the current phase. The CLI restores only the teamlead - orchestration stays in one place.

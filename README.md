@@ -55,6 +55,10 @@ Then talk only to the teamlead. Give it a task in plain language. It clarifies a
 | `init` | Scan repo, scaffold `.agent-crew/` into the current project |
 | `launch` | Start the teamlead tmux session (self-onboards on first run) |
 | `onboard` | Run/refresh the deep project onboarding |
+| `status` | One-screen report: role sessions, devserver health, pipeline phase |
+| `attach [role]` | Attach to a role's tmux session (default: teamlead) |
+| `stop [--force]` | Stop all crew sessions; warns if a task is in flight, `.inbox/` state is kept |
+| `resume` | Relaunch the teamlead and continue from `.inbox/status.md` after a crash/reboot |
 | `sync` | Regenerate generated files from `team.config.yaml` |
 | `doctor` | Check preconditions (tmux, package manager, port, env) |
 

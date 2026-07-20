@@ -24,3 +24,12 @@ test("doctor.sh includes a gstack check when qa_command is a slash-skill", () =>
   const scripts = renderBinScripts(cfg);
   assert.match(scripts["doctor.sh"], /gstack/);
 });
+
+test("launch.sh supports resume via AGENT_CREW_RESUME with an alternative bootstrap", () => {
+  const scripts = renderBinScripts(cfg);
+  assert.match(scripts["launch.sh"], /AGENT_CREW_RESUME/);
+  assert.match(scripts["launch.sh"], /відновлення після рестарту/);
+  assert.match(scripts["launch.sh"], /не починай задачу заново/);
+  // обидва промпти присутні: звичайний і resume
+  assert.match(scripts["launch.sh"], /self-onboarding/);
+});

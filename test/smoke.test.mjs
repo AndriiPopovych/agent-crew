@@ -19,3 +19,12 @@ test("unknown command exits 1", () => {
 test("sync without config exits 1", () => {
   assert.throws(() => execFileSync("node", [cli, "sync"], { encoding: "utf8", cwd: "/tmp" }));
 });
+
+test("--help lists lifecycle commands", () => {
+  const out = execFileSync("node", [cli, "--help"], { encoding: "utf8" });
+  for (const c of ["status", "attach", "stop", "resume"]) assert.match(out, new RegExp(c));
+});
+
+test("status outside a project exits 1", () => {
+  assert.throws(() => execFileSync("node", [cli, "status"], { encoding: "utf8", cwd: "/tmp" }));
+});
