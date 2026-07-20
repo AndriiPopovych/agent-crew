@@ -43,7 +43,7 @@ export function preflightMessage({ hasTmux, hasClaude }) {
   return lines.join("\n");
 }
 
-export function launch(targetRoot, { onboard = false } = {}) {
+export function launch(targetRoot, { onboard = false, resume = false } = {}) {
   const hasTmux = commandExists("tmux");
   const hasClaude = commandExists("claude");
   const msg = preflightMessage({ hasTmux, hasClaude });
@@ -54,7 +54,11 @@ export function launch(targetRoot, { onboard = false } = {}) {
   const res = spawnSync("bash", [script], {
     stdio: "inherit",
     cwd: targetRoot,
-    env: { ...process.env, AGENT_CREW_FORCE_ONBOARD: onboard ? "1" : "" },
+    env: {
+      ...process.env,
+      AGENT_CREW_FORCE_ONBOARD: onboard ? "1" : "",
+      AGENT_CREW_RESUME: resume ? "1" : "",
+    },
   });
   return res.status ?? 1;
 }
