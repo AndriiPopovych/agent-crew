@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseSessions, readPipelineState, relativeAge, buildStatusReport, buildStopPlan, runStop } from "../src/lifecycle.mjs";
+import { parseSessions, readPipelineState, relativeAge, buildStatusReport, buildStopPlan, runStop, runAttach, checkHealth } from "../src/lifecycle.mjs";
 import { buildConfig } from "../src/config.mjs";
 import { detectFromFiles } from "../src/detect.mjs";
 
@@ -234,4 +234,41 @@ test("runStop: --force skips confirm and kills all sessions", async () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("relativeAge: boundaries - 48h cutoff and future timestamps", () => {
+  assert.equal(relativeAge("2026-07-18T11:14:00Z", NOW), "47 год тому");
+  assert.equal(relativeAge("2026-07-18T10:14:00Z", NOW), "2 дн тому");
+  assert.equal(relativeAge("2026-07-20T11:00:00Z", NOW), "щойно");
+});
+
+test("buildStatusReport: iteration 0 is rendered", () => {
+  const out = buildStatusReport(
+    cfg,
+    parseSessions("demo", ""),
+    { exists: true, state: { phase: "development", iteration: 0 }, raw: "" },
+    { now: NOW }
+  );
+  assert.match(out, /ітерація: 0/);
+});
+
+test("buildStopPlan: busy phase without task → reason has phase only", () => {
+  const plan = buildStopPlan(cfg, parseSessions("demo", "demo-teamlead\n"), {
+    exists: true,
+    state: { phase: "review" },
+    raw: "",
+  });
+  assert.equal(plan.needsConfirm, true);
+  assert.equal(plan.reason, 'фаза "review"');
+  assert.deepEqual(plan.sessions, ["demo-teamlead"]);
+});
+
+test("runAttach: disabled role → 1, no tmux touched", () => {
+  const code = runAttach(cfg, "ux");
+  assert.equal(code, 1);
+});
+
+test("checkHealth: no url → null", async () => {
+  assert.equal(await checkHealth(undefined), null);
+  assert.equal(await checkHealth(""), null);
 });

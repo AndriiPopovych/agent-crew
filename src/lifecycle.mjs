@@ -134,7 +134,7 @@ export function runAttach(cfg, role = "teamlead") {
     console.error(
       role === "teamlead"
         ? `Сесія ${session} не запущена. Запусти: agentcrew launch`
-        : `Сесія ${session} не запущена. Воркерів піднімає teamlead: agentcrew attach`
+        : `Сесія ${session} не запущена. Воркерів піднімає teamlead - під'єднайся до нього: agentcrew attach`
     );
     return 1;
   }
