@@ -3,7 +3,21 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseSessions, readPipelineState } from "../src/lifecycle.mjs";
+import { parseSessions, readPipelineState, relativeAge, buildStatusReport } from "../src/lifecycle.mjs";
+import { buildConfig } from "../src/config.mjs";
+import { detectFromFiles } from "../src/detect.mjs";
+
+const cfg = buildConfig(
+  detectFromFiles({
+    lockfiles: ["bun.lock"],
+    pkg: { scripts: { dev: "next dev" }, dependencies: { next: "16" } },
+    name: "demo",
+    root: "/tmp/demo",
+  }),
+  { roles: { architect: true } }
+);
+
+const NOW = new Date("2026-07-20T10:14:00Z");
 
 test("parseSessions: empty tmux output → nothing live", () => {
   const s = parseSessions("demo", "");
@@ -72,4 +86,59 @@ test("readPipelineState: broken JSON → state null, raw preserved, no throw", (
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("relativeAge: minutes, hours, days, garbage", () => {
+  assert.equal(relativeAge("2026-07-20T10:13:40Z", NOW), "щойно");
+  assert.equal(relativeAge("2026-07-20T10:00:00Z", NOW), "14 хв тому");
+  assert.equal(relativeAge("2026-07-20T07:14:00Z", NOW), "3 год тому");
+  assert.equal(relativeAge("2026-07-15T10:14:00Z", NOW), "5 дн тому");
+  assert.equal(relativeAge("not-a-date", NOW), null);
+});
+
+test("buildStatusReport: sessions, lazy roles, pipeline, health", () => {
+  const sessions = parseSessions("demo", "demo-teamlead\ndemo-server\n");
+  const pipeline = {
+    exists: true,
+    state: { phase: "development", task: "TASK-3", iteration: 1, timestamp: "2026-07-20T10:00:00Z" },
+    raw: "…",
+  };
+  const out = buildStatusReport(cfg, sessions, pipeline, { health: true, now: NOW });
+  assert.match(out, /agent-crew - demo/);
+  assert.match(out, /● teamlead/);
+  assert.match(out, /○ dev\s+down/);
+  assert.match(out, /○ architect\s+не запущена \(lazy-роль\)/);
+  assert.match(out, /● сесія demo-server: up/);
+  assert.match(out, /health http:\/\/localhost:3000: ok/);
+  assert.match(out, /фаза:\s+development/);
+  assert.match(out, /задача:\s+TASK-3/);
+  assert.match(out, /оновлено: 2026-07-20T10:00:00Z \(14 хв тому\)/);
+});
+
+test("buildStatusReport: no state yet", () => {
+  const out = buildStatusReport(
+    cfg,
+    parseSessions("demo", ""),
+    { exists: false, state: null, raw: null },
+    { health: false, now: NOW }
+  );
+  assert.match(out, /стан відсутній/);
+  assert.match(out, /health http:\/\/localhost:3000: недоступний/);
+});
+
+test("buildStatusReport: broken status.md shows raw without crashing", () => {
+  const out = buildStatusReport(
+    cfg,
+    parseSessions("demo", ""),
+    { exists: true, state: null, raw: "half-written garbage" },
+    { now: NOW }
+  );
+  assert.match(out, /не парситься/);
+  assert.match(out, /half-written garbage/);
+});
+
+test("buildStatusReport: unknown crew sessions listed separately", () => {
+  const sessions = parseSessions("demo", "demo-teamlead\ndemo-scribe\n");
+  const out = buildStatusReport(cfg, sessions, { exists: false, state: null, raw: null }, { now: NOW });
+  assert.match(out, /інші сесії: demo-scribe/);
 });

@@ -31,4 +31,55 @@ export function readPipelineState(inboxDir) {
   }
 }
 
+export function relativeAge(iso, now = new Date()) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return null;
+  const min = Math.round((now.getTime() - t) / 60000);
+  if (min < 1) return "щойно";
+  if (min < 60) return `${min} хв тому`;
+  const h = Math.floor(min / 60);
+  if (h < 48) return `${h} год тому`;
+  return `${Math.floor(h / 24)} дн тому`;
+}
+
+// Pure render of the one-screen status report.
+export function buildStatusReport(cfg, sessions, pipeline, { health = null, now = new Date() } = {}) {
+  const prefix = cfg.project.name;
+  const lines = [`agent-crew - ${prefix}`, "", "Ролі:"];
+  const enabled = Object.entries(cfg.roles)
+    .filter(([, on]) => on)
+    .map(([r]) => r);
+  for (const role of enabled) {
+    const up = sessions.live.has(`${prefix}-${role}`);
+    const label = up ? "up" : CORE_ROLES.includes(role) ? "down" : "не запущена (lazy-роль)";
+    lines.push(`  ${up ? "●" : "○"} ${role.padEnd(11)} ${label}`);
+  }
+  const extra = sessions.roles.filter((r) => !enabled.includes(r));
+  if (extra.length) lines.push(`  інші сесії: ${extra.map((r) => `${prefix}-${r}`).join(", ")}`);
+
+  lines.push("", "Devserver:");
+  lines.push(`  ${sessions.server ? "●" : "○"} сесія ${prefix}-server: ${sessions.server ? "up" : "down"}`);
+  if (health !== null) {
+    lines.push(`  health ${cfg.devserver.health_url}: ${health ? "ok" : "недоступний"}`);
+  }
+
+  lines.push("", "Pipeline:");
+  if (!pipeline.exists) {
+    lines.push("  стан відсутній - crew ще не працювала або .inbox/ порожній");
+  } else if (!pipeline.state) {
+    lines.push("  status.md не парситься як JSON. Сирий вміст:");
+    lines.push(`  ${pipeline.raw}`);
+  } else {
+    const s = pipeline.state;
+    lines.push(`  фаза:     ${s.phase ?? "?"}`);
+    if (s.task) lines.push(`  задача:   ${s.task}`);
+    if (s.iteration != null) lines.push(`  ітерація: ${s.iteration}`);
+    if (s.timestamp) {
+      const age = relativeAge(s.timestamp, now);
+      lines.push(`  оновлено: ${s.timestamp}${age ? ` (${age})` : ""}`);
+    }
+  }
+  return lines.join("\n");
+}
+
 export { CORE_ROLES };
