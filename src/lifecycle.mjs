@@ -82,4 +82,16 @@ export function buildStatusReport(cfg, sessions, pipeline, { health = null, now 
   return lines.join("\n");
 }
 
+// Pure: which sessions to kill and whether to ask first.
+export function buildStopPlan(cfg, sessions, pipeline) {
+  const phase = pipeline?.state?.phase ?? null;
+  const busy = phase !== null && phase !== "idle" && phase !== "batch_done";
+  const task = pipeline?.state?.task;
+  return {
+    sessions: [...sessions.live].sort(),
+    needsConfirm: busy,
+    reason: busy ? `фаза "${phase}"${task ? `, задача ${task}` : ""}` : null,
+  };
+}
+
 export { CORE_ROLES };

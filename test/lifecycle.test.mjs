@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseSessions, readPipelineState, relativeAge, buildStatusReport } from "../src/lifecycle.mjs";
+import { parseSessions, readPipelineState, relativeAge, buildStatusReport, buildStopPlan } from "../src/lifecycle.mjs";
 import { buildConfig } from "../src/config.mjs";
 import { detectFromFiles } from "../src/detect.mjs";
 
@@ -141,4 +141,29 @@ test("buildStatusReport: unknown crew sessions listed separately", () => {
   const sessions = parseSessions("demo", "demo-teamlead\ndemo-scribe\n");
   const out = buildStatusReport(cfg, sessions, { exists: false, state: null, raw: null }, { now: NOW });
   assert.match(out, /інші сесії: demo-scribe/);
+});
+
+test("buildStopPlan: idle → no confirm", () => {
+  const sessions = parseSessions("demo", "demo-teamlead\ndemo-dev\n");
+  const pipeline = { exists: true, state: { phase: "idle" }, raw: "" };
+  const plan = buildStopPlan(cfg, sessions, pipeline);
+  assert.deepEqual(plan.sessions, ["demo-dev", "demo-teamlead"]);
+  assert.equal(plan.needsConfirm, false);
+  assert.equal(plan.reason, null);
+});
+
+test("buildStopPlan: active phase → confirm with phase and task", () => {
+  const sessions = parseSessions("demo", "demo-teamlead\n");
+  const pipeline = { exists: true, state: { phase: "development", task: "TASK-7" }, raw: "" };
+  const plan = buildStopPlan(cfg, sessions, pipeline);
+  assert.equal(plan.needsConfirm, true);
+  assert.match(plan.reason, /development/);
+  assert.match(plan.reason, /TASK-7/);
+});
+
+test("buildStopPlan: batch_done or no state → no confirm", () => {
+  const sessions = parseSessions("demo", "demo-teamlead\n");
+  assert.equal(buildStopPlan(cfg, sessions, { exists: true, state: { phase: "batch_done" }, raw: "" }).needsConfirm, false);
+  assert.equal(buildStopPlan(cfg, sessions, { exists: false, state: null, raw: null }).needsConfirm, false);
+  assert.equal(buildStopPlan(cfg, sessions, { exists: true, state: null, raw: "broken" }).needsConfirm, false);
 });
