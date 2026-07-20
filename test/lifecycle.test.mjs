@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseSessions, readPipelineState } from "../src/lifecycle.mjs";
@@ -46,6 +46,16 @@ test("readPipelineState: valid JSON", () => {
     assert.equal(r.state.phase, "development");
     assert.equal(r.state.task, "TASK-3");
     assert.equal(r.raw, json);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("readPipelineState: unreadable status.md → no throw, raw null", () => {
+  const dir = mkdtempSync(join(tmpdir(), "inbox-"));
+  try {
+    mkdirSync(join(dir, "status.md"));
+    assert.deepEqual(readPipelineState(dir), { exists: true, state: null, raw: null });
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
