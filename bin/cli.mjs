@@ -9,7 +9,7 @@ import { scaffold } from "../src/scaffold.mjs";
 import { syncGenerated } from "../src/sync.mjs";
 import { runDoctor } from "../src/doctor.mjs";
 import { launch } from "../src/launch.mjs";
-import { runStatus, runAttach } from "../src/lifecycle.mjs";
+import { runStatus, runAttach, runStop } from "../src/lifecycle.mjs";
 
 const [, , cmd, ...args] = process.argv;
 const cwd = process.cwd();
@@ -101,6 +101,11 @@ async function main() {
     case "attach": {
       const cfg = loadCfgOrExit(cwd);
       process.exit(runAttach(cfg, args[0] || "teamlead"));
+      break;
+    }
+    case "stop": {
+      const cfg = loadCfgOrExit(cwd);
+      process.exit(await runStop(cfg, { cwd, force: args.includes("--force") }));
       break;
     }
     case undefined:

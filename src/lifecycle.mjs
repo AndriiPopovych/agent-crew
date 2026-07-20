@@ -142,4 +142,36 @@ export function runAttach(cfg, role = "teamlead") {
   return res.status ?? 1;
 }
 
+async function defaultAsk(question) {
+  const { createInterface } = await import("node:readline/promises");
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return parseYesNo(await rl.question(question), false);
+  } finally {
+    rl.close();
+  }
+}
+
+export async function runStop(cfg, { cwd = process.cwd(), force = false, ask = defaultAsk } = {}) {
+  const sessions = parseSessions(cfg.project.name, listTmuxSessions());
+  const pipeline = readPipelineState(join(cwd, ".agent-crew/.inbox"));
+  const plan = buildStopPlan(cfg, sessions, pipeline);
+  if (plan.sessions.length === 0) {
+    console.log("Нічого зупиняти - жодної живої сесії crew.");
+    return 0;
+  }
+  console.log(`Живі сесії: ${plan.sessions.join(", ")}`);
+  if (plan.needsConfirm && !force) {
+    const confirmed = await ask(`Pipeline активний (${plan.reason}). Точно зупинити? [y/N] `);
+    if (!confirmed) {
+      console.log("Скасовано - нічого не зупинено.");
+      return 0;
+    }
+  }
+  for (const s of plan.sessions) spawnSync("tmux", ["kill-session", "-t", s]);
+  console.log(`Зупинено: ${plan.sessions.join(", ")}`);
+  console.log("Стан у .inbox/ збережено - продовжити: agentcrew resume");
+  return 0;
+}
+
 export { CORE_ROLES };

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseSessions, readPipelineState, relativeAge, buildStatusReport, buildStopPlan } from "../src/lifecycle.mjs";
+import { parseSessions, readPipelineState, relativeAge, buildStatusReport, buildStopPlan, runStop } from "../src/lifecycle.mjs";
 import { buildConfig } from "../src/config.mjs";
 import { detectFromFiles } from "../src/detect.mjs";
 
@@ -166,4 +166,9 @@ test("buildStopPlan: batch_done or no state → no confirm", () => {
   assert.equal(buildStopPlan(cfg, sessions, { exists: true, state: { phase: "batch_done" }, raw: "" }).needsConfirm, false);
   assert.equal(buildStopPlan(cfg, sessions, { exists: false, state: null, raw: null }).needsConfirm, false);
   assert.equal(buildStopPlan(cfg, sessions, { exists: true, state: null, raw: "broken" }).needsConfirm, false);
+});
+
+test("runStop: no live sessions → nothing to stop, exit 0", async () => {
+  const code = await runStop(cfg, { cwd: "/tmp", force: false, ask: async () => true });
+  assert.equal(code, 0);
 });
