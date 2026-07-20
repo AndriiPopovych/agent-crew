@@ -108,6 +108,15 @@ async function main() {
       process.exit(await runStop(cfg, { cwd, force: args.includes("--force") }));
       break;
     }
+    case "resume": {
+      loadCfgOrExit(cwd);
+      if (!existsSync(join(cwd, ".agent-crew/.inbox/status.md"))) {
+        console.error("Немає .agent-crew/.inbox/status.md - нема чого відновлювати. Використай: agentcrew launch");
+        process.exit(1);
+      }
+      process.exit(launch(cwd, { resume: true }));
+      break;
+    }
     case undefined:
     case "--help":
     case "-h":
