@@ -169,6 +169,69 @@ test("buildStopPlan: batch_done or no state → no confirm", () => {
 });
 
 test("runStop: no live sessions → nothing to stop, exit 0", async () => {
-  const code = await runStop(cfg, { cwd: "/tmp", force: false, ask: async () => true });
+  const killed = [];
+  const code = await runStop(cfg, {
+    cwd: "/tmp",
+    listSessions: () => "",
+    kill: (s) => killed.push(s),
+    ask: async () => true,
+  });
   assert.equal(code, 0);
+  assert.deepEqual(killed, []);
+});
+
+test("runStop: active pipeline + declined confirm → nothing killed", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "crew-"));
+  try {
+    mkdirSync(join(dir, ".agent-crew/.inbox"), { recursive: true });
+    writeFileSync(
+      join(dir, ".agent-crew/.inbox/status.md"),
+      '{"phase":"development","task":"TASK-2"}'
+    );
+    const killed = [];
+    const asked = [];
+    const code = await runStop(cfg, {
+      cwd: dir,
+      listSessions: () => "demo-teamlead\ndemo-dev\n",
+      kill: (s) => killed.push(s),
+      ask: async (q) => {
+        asked.push(q);
+        return false;
+      },
+    });
+    assert.equal(code, 0);
+    assert.deepEqual(killed, []);
+    assert.equal(asked.length, 1);
+    assert.match(asked[0], /development/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("runStop: --force skips confirm and kills all sessions", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "crew-"));
+  try {
+    mkdirSync(join(dir, ".agent-crew/.inbox"), { recursive: true });
+    writeFileSync(
+      join(dir, ".agent-crew/.inbox/status.md"),
+      '{"phase":"development","task":"TASK-2"}'
+    );
+    const killed = [];
+    let askCalls = 0;
+    const code = await runStop(cfg, {
+      cwd: dir,
+      force: true,
+      listSessions: () => "demo-teamlead\ndemo-server\n",
+      kill: (s) => killed.push(s),
+      ask: async () => {
+        askCalls++;
+        return false;
+      },
+    });
+    assert.equal(code, 0);
+    assert.deepEqual(killed, ["demo-server", "demo-teamlead"]);
+    assert.equal(askCalls, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

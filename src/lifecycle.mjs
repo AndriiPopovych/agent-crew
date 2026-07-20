@@ -152,8 +152,15 @@ async function defaultAsk(question) {
   }
 }
 
-export async function runStop(cfg, { cwd = process.cwd(), force = false, ask = defaultAsk } = {}) {
-  const sessions = parseSessions(cfg.project.name, listTmuxSessions());
+function killTmuxSession(name) {
+  spawnSync("tmux", ["kill-session", "-t", name]);
+}
+
+export async function runStop(
+  cfg,
+  { cwd = process.cwd(), force = false, ask = defaultAsk, listSessions = listTmuxSessions, kill = killTmuxSession } = {}
+) {
+  const sessions = parseSessions(cfg.project.name, listSessions());
   const pipeline = readPipelineState(join(cwd, ".agent-crew/.inbox"));
   const plan = buildStopPlan(cfg, sessions, pipeline);
   if (plan.sessions.length === 0) {
@@ -168,7 +175,7 @@ export async function runStop(cfg, { cwd = process.cwd(), force = false, ask = d
       return 0;
     }
   }
-  for (const s of plan.sessions) spawnSync("tmux", ["kill-session", "-t", s]);
+  for (const s of plan.sessions) kill(s);
   console.log(`Зупинено: ${plan.sessions.join(", ")}`);
   console.log("Стан у .inbox/ збережено - продовжити: agentcrew resume");
   return 0;
